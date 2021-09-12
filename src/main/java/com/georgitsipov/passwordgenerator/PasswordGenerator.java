@@ -37,6 +37,11 @@ public class PasswordGenerator {
         this.symbols = symbols;
     }
 
+    /**
+     * Sets the include options
+     *
+     * @param all boolean for all include options
+     */
     public void setAll(boolean all) {
         uppercase = all;
         lowercase = all;
@@ -44,6 +49,11 @@ public class PasswordGenerator {
         symbols = all;
     }
 
+    /**
+     * Generates random password from the allowed chars specified in the options from the user
+     *
+     * @return Random password
+     */
     public String generatePassword() {
         List<char[]> allAllowed = new ArrayList<>();
         if (uppercase) {
@@ -64,6 +74,7 @@ public class PasswordGenerator {
 
         StringBuilder password = new StringBuilder();
 
+        // Random chars
         for (int i = 0; i < length - allAllowed.size(); i++) {
             char[] characterType = allAllowed.get(random.nextInt(allAllowed.size()));
             password.append(characterType[random.nextInt(characterType.length)]);
@@ -74,6 +85,5 @@ public class PasswordGenerator {
             password.insert(random.nextInt(password.length()), category[random.nextInt(category.length)]);
         }
         return password.toString();
-
     }
 }

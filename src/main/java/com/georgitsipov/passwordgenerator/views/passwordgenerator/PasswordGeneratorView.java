@@ -37,37 +37,28 @@ public class PasswordGeneratorView extends Div {
     public PasswordGeneratorView() {
         addClassNames("password-generator-view", "flex", "flex-col", "h-full", "items-center", "p-l", "box-border");
 
-        PasswordGenerator passwordGenerator = new PasswordGenerator();
-
+        // header
         Image img = new Image("images/lock.png", "lock");
         img.setWidth("100px");
-        add(img);
-
-        // header
         H1 header = new H1("Password Generator");
-        add(header);
-
+        add(img, header);
 
         // Vertical layout for contents
-        VerticalLayout verticalLayout1 = new VerticalLayout();
-        verticalLayout1.setWidth(header.getWidth());
-        add(verticalLayout1);
-
+        VerticalLayout content = new VerticalLayout();
+        content.setWidth(header.getWidth());
+        add(content);
 
         // Password field with copy button
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
         TextField passwordField = new TextField();
         passwordField.setAutoselect(true);
-        Button copyButton = new Button("Copy", VaadinIcon.COPY.create());
-        copyButton.addClickListener(
-                e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0) ", passwordField.getValue())
-        );
-        horizontalLayout.add(passwordField, copyButton);
-        verticalLayout1.add(horizontalLayout);
+        Button copyButton = new Button("Copy", VaadinIcon.COPY.create(),
+                e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0) ",
+                        passwordField.getValue()));
+        content.add(new HorizontalLayout(passwordField, copyButton));
 
         // Generate Password button
         Button generateButton = new Button("Generate Password");
-        verticalLayout1.add(generateButton);
+        content.add(generateButton);
 
         // Password length field
         NumberField numberField = new NumberField("Length");
@@ -75,7 +66,7 @@ public class PasswordGeneratorView extends Div {
         numberField.setHasControls(true);
         numberField.setMin(PASSWORD_LENGTH_MIN);
         numberField.setMax(PASSWORD_LENGTH_MAX);
-        verticalLayout1.add(numberField);
+        content.add(numberField);
 
         // Include options
         Checkbox allCheckbox = new Checkbox("Select all");
@@ -86,6 +77,13 @@ public class PasswordGeneratorView extends Div {
         checkboxGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
         checkboxGroup.select(items);
         allCheckbox.setValue(true);
+        content.add(allCheckbox, checkboxGroup);
+
+        // Event listeners
+        copyButton.addClickListener(
+                e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0) ", passwordField.getValue())
+        );
+
         checkboxGroup.addValueChangeListener(event -> {
             if (event.getValue().size() == items.size()) {
                 allCheckbox.setValue(true);
@@ -96,6 +94,7 @@ public class PasswordGeneratorView extends Div {
             } else
                 allCheckbox.setIndeterminate(true);
         });
+
         allCheckbox.addValueChangeListener(event -> {
             if (allCheckbox.getValue()) {
                 checkboxGroup.setValue(items);
@@ -103,47 +102,42 @@ public class PasswordGeneratorView extends Div {
                 checkboxGroup.deselectAll();
             }
         });
-        verticalLayout1.add(allCheckbox, checkboxGroup);
 
 
         generateButton.addClickListener(buttonClickEvent -> {
+            PasswordGenerator passwordGenerator = new PasswordGenerator();
+
             // parse options
             passwordGenerator.setAll(false);
             for (String option : checkboxGroup.getSelectedItems()) {
                 switch (option) {
-                    case "Include uppercase letters": 
+                    case "Include uppercase letters":
                         passwordGenerator.setUppercase(true);
                         break;
-                    case "Include lowercase letters" :
+                    case "Include lowercase letters":
                         passwordGenerator.setLowercase(true);
                         break;
-                    case "Include numbers" :
+                    case "Include numbers":
                         passwordGenerator.setNumbers(true);
                         break;
-                    case "Include symbols" :
+                    case "Include symbols":
                         passwordGenerator.setSymbols(true);
                         break;
                     default:
                         throw new IllegalStateException("Unexpected value: " + option);
                 }
             }
+
             if (checkboxGroup.getSelectedItems().size() != 0) {
                 passwordGenerator.setLength(numberField.getValue());
-                String password = passwordGenerator.generatePassword();
-                passwordField.setValue(password);
+                passwordField.setValue(passwordGenerator.generatePassword());
             } else {
+                // If no options pop dialog window
                 Dialog noOptionsDialog = new Dialog();
                 Button OKButton = new Button("OK!", event -> noOptionsDialog.close());
                 noOptionsDialog.add(new VerticalLayout(new Text("Select at least one option."), OKButton));
-
                 noOptionsDialog.open();
             }
-
         });
-
-        copyButton.addClickListener(
-                e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.readText().then(clipText => $0.$server.doPaste(clipText)) ", getElement())
-        );
-
     }
 }
