@@ -111,10 +111,20 @@ public class PasswordGeneratorView extends Div {
             passwordGenerator.setAll(false);
             for (String option : checkboxGroup.getSelectedItems()) {
                 switch (option) {
-                    case "Include uppercase letters" -> passwordGenerator.setUppercase(true);
-                    case "Include lowercase letters" -> passwordGenerator.setLowercase(true);
-                    case "Include numbers" -> passwordGenerator.setNumbers(true);
-                    case "Include symbols" -> passwordGenerator.setSymbols(true);
+                    case "Include uppercase letters": 
+                        passwordGenerator.setUppercase(true);
+                        break;
+                    case "Include lowercase letters" :
+                        passwordGenerator.setLowercase(true);
+                        break;
+                    case "Include numbers" :
+                        passwordGenerator.setNumbers(true);
+                        break;
+                    case "Include symbols" :
+                        passwordGenerator.setSymbols(true);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + option);
                 }
             }
             if (checkboxGroup.getSelectedItems().size() != 0) {
