@@ -32,8 +32,8 @@ import java.util.Set;
 @Route(value = "")
 public class PasswordGeneratorView extends Div {
 
-    private static final int PASSWORD_LENGTH_MIN = 6;
-    private static final int PASSWORD_LENGTH_MAX = 100;
+    private static final double PASSWORD_LENGTH_MIN = 6;
+    private static final double PASSWORD_LENGTH_MAX = 100;
 
     public PasswordGeneratorView() {
         addClassNames("password-generator-view", "flex", "flex-col", "h-full", "items-center", "p-l", "box-border");
@@ -68,7 +68,7 @@ public class PasswordGeneratorView extends Div {
 
         // Password length field
         NumberField numberField = new NumberField("Length");
-        numberField.setValue(6d);
+        numberField.setValue(PASSWORD_LENGTH_MIN);
         numberField.setHasControls(true);
         numberField.setMin(PASSWORD_LENGTH_MIN);
         numberField.setMax(PASSWORD_LENGTH_MAX);
@@ -86,10 +86,12 @@ public class PasswordGeneratorView extends Div {
         content.add(allCheckbox, checkboxGroup);
 
         // Event listeners
+        // Copy to clipboard
         copyButton.addClickListener(
                 e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0) ", passwordField.getValue())
         );
 
+        // Checkboxes
         checkboxGroup.addValueChangeListener(event -> {
             if (event.getValue().size() == items.size()) {
                 allCheckbox.setValue(true);
@@ -101,6 +103,7 @@ public class PasswordGeneratorView extends Div {
                 allCheckbox.setIndeterminate(true);
         });
 
+        // "Select all" checkbox
         allCheckbox.addValueChangeListener(event -> {
             if (allCheckbox.getValue()) {
                 checkboxGroup.setValue(items);
@@ -109,47 +112,63 @@ public class PasswordGeneratorView extends Div {
             }
         });
 
+        // Generate Password
         generateButton.addClickListener(buttonClickEvent -> {
             PasswordGenerator passwordGenerator = new PasswordGenerator();
+            double passwordLength = numberField.getValue();
 
-            // parse options
-            passwordGenerator.setAll(false);
-            for (String option : checkboxGroup.getSelectedItems()) {
-                switch (option) {
-                    case "Include uppercase letters":
-                        passwordGenerator.setUppercase(true);
-                        break;
-                    case "Include lowercase letters":
-                        passwordGenerator.setLowercase(true);
-                        break;
-                    case "Include numbers":
-                        passwordGenerator.setNumbers(true);
-                        break;
-                    case "Include symbols":
-                        passwordGenerator.setSymbols(true);
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + option);
-                }
-            }
-
-            if (checkboxGroup.getSelectedItems().size() != 0) {
-                passwordGenerator.setLength(numberField.getValue());
+            // If the parsing was successful and the password length is valid, generate password
+            if (parseOptions(checkboxGroup, passwordGenerator) &&
+                    passwordLength >= PASSWORD_LENGTH_MIN && passwordLength <= PASSWORD_LENGTH_MAX) {
+                passwordGenerator.setLength(passwordLength);
                 String password = passwordGenerator.generatePassword();
                 passwordField.setValue(password);
-
-            } else {
-                // If no options pop dialog window
-                Dialog noOptionsDialog = new Dialog();
-                Button OKButton = new Button("OK!", event -> noOptionsDialog.close());
-                noOptionsDialog.add(new VerticalLayout(new Text("Select at least one option."), OKButton));
-                noOptionsDialog.open();
             }
         });
 
+        // Listen to the password field to change the strength bar accordingly
         passwordField.addValueChangeListener(e -> {
             int strength = PasswordGenerator.checkStrength(passwordField.getValue());
             strengthBar.setValue(strength);
         });
+    }
+
+    /**
+     * Helper method to set the options in the password generator from the checkboxes
+     *
+     * @param checkboxGroup     Checkbox group which contains the options for the password generator
+     * @param passwordGenerator Password generator, its options would be set
+     * @return If the option parsing was successful, if false it pops a Dialog
+     */
+    private boolean parseOptions(CheckboxGroup<String> checkboxGroup, PasswordGenerator passwordGenerator) {
+        // If no options pop dialog window
+        if (checkboxGroup.getSelectedItems().size() == 0) {
+            Dialog noOptionsDialog = new Dialog();
+            Button OKButton = new Button("OK!", event -> noOptionsDialog.close());
+            noOptionsDialog.add(new VerticalLayout(new Text("Select at least one option."), OKButton));
+            noOptionsDialog.open();
+            return false;
+        }
+
+        passwordGenerator.setAll(false);
+        for (String option : checkboxGroup.getSelectedItems()) {
+            switch (option) {
+                case "Include uppercase letters":
+                    passwordGenerator.setUppercase(true);
+                    break;
+                case "Include lowercase letters":
+                    passwordGenerator.setLowercase(true);
+                    break;
+                case "Include numbers":
+                    passwordGenerator.setNumbers(true);
+                    break;
+                case "Include symbols":
+                    passwordGenerator.setSymbols(true);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + option);
+            }
+        }
+        return true;
     }
 }
