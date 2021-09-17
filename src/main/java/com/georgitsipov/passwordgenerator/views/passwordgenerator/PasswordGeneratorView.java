@@ -1,6 +1,7 @@
 package com.georgitsipov.passwordgenerator.views.passwordgenerator;
 
 import com.georgitsipov.passwordgenerator.PasswordGenerator;
+import com.georgitsipov.passwordgenerator.StrengthBar;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -8,14 +9,13 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
@@ -31,6 +31,7 @@ import java.util.Set;
 @PageTitle("Password Generator")
 @Route(value = "")
 public class PasswordGeneratorView extends Div {
+
     private static final int PASSWORD_LENGTH_MIN = 6;
     private static final int PASSWORD_LENGTH_MAX = 100;
 
@@ -51,10 +52,15 @@ public class PasswordGeneratorView extends Div {
         // Password field with copy button
         TextField passwordField = new TextField();
         passwordField.setAutoselect(true);
+        passwordField.setValueChangeMode(ValueChangeMode.EAGER);
         Button copyButton = new Button("Copy", VaadinIcon.COPY.create(),
                 e -> UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0) ",
                         passwordField.getValue()));
         content.add(new HorizontalLayout(passwordField, copyButton));
+
+        // Strength bar
+        StrengthBar strengthBar = new StrengthBar(0, 4, 0);
+        content.add(strengthBar);
 
         // Generate Password button
         Button generateButton = new Button("Generate Password");
@@ -103,7 +109,6 @@ public class PasswordGeneratorView extends Div {
             }
         });
 
-
         generateButton.addClickListener(buttonClickEvent -> {
             PasswordGenerator passwordGenerator = new PasswordGenerator();
 
@@ -130,7 +135,9 @@ public class PasswordGeneratorView extends Div {
 
             if (checkboxGroup.getSelectedItems().size() != 0) {
                 passwordGenerator.setLength(numberField.getValue());
-                passwordField.setValue(passwordGenerator.generatePassword());
+                String password = passwordGenerator.generatePassword();
+                passwordField.setValue(password);
+
             } else {
                 // If no options pop dialog window
                 Dialog noOptionsDialog = new Dialog();
@@ -138,6 +145,11 @@ public class PasswordGeneratorView extends Div {
                 noOptionsDialog.add(new VerticalLayout(new Text("Select at least one option."), OKButton));
                 noOptionsDialog.open();
             }
+        });
+
+        passwordField.addValueChangeListener(e -> {
+            int strength = PasswordGenerator.checkStrength(passwordField.getValue());
+            strengthBar.setValue(strength);
         });
     }
 }

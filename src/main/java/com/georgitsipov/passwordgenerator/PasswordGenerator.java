@@ -1,5 +1,8 @@
 package com.georgitsipov.passwordgenerator;
 
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,5 +88,22 @@ public class PasswordGenerator {
             password.insert(random.nextInt(password.length()), category[random.nextInt(category.length)]);
         }
         return password.toString();
+    }
+
+    /**
+     * Calculates the strength of a password
+     * 0 Weak        （guesses < ^ 3 10）
+     * 1 Fair        （guesses <^ 6 10）
+     * 2 Good        （guesses <^ 8 10）
+     * 3 Strong      （guesses < 10 ^ 10）
+     * 4 Very strong （guesses >= 10 ^ 10）
+     *
+     * @param password The password as String
+     * @return Integer indicating password strength
+     */
+    public static int checkStrength(String password) {
+        Zxcvbn zxcvbn = new Zxcvbn();
+        Strength strength = zxcvbn.measure(password);
+        return strength.getScore();
     }
 }
