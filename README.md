@@ -38,6 +38,21 @@ This builds a production-optimized JAR file in the target folder.
 
 You are making a registration in a random website and you need a secure password, then visit [GT-Passgen](https://gt-passgen.herokuapp.com). You can choose the desired length and what characters should be included. Hit `Generate Password`, the app will generate a secure random password and will also show its strength. You can also type your own password and see how strong it ist (I promise nothing is stored ;) )
 
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## Contact
+
+Georgi Tsipov - georgi.tsipov@gmail.com
+
+Project Link: [https://github.com/georgi4444/GT-Passgen](https://github.com/georgi4444/GT-Passgen)
+
+
+## Acknowledgements
+
+* [zxcvbn4j](https://github.com/nulab/zxcvbn4j)
+
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [project-screenshot]: ./screenshot.png
